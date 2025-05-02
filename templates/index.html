@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT Downloader Interface</title>
+    <style>
+        /* Styles remain largely the same, added space for status messages */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --border-radius: 0.3rem;
+        }
+
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            background-color: #e9ecef;
+            color: var(--dark-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--dark-color);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        #getinfo-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        input[type="text"] {
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .button {
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+            text-align: center;
+            font-weight: 500;
+            display: inline-block;
+            width: auto;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+        }
+
+        .button:active {
+            transform: scale(0.98);
+        }
+
+        .button:disabled {
+            background-color: var(--secondary-color);
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        .button-primary {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .button-primary:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+
+        .button-success {
+            background-color: var(--success-color);
+            color: #fff;
+        }
+
+        .button-success:hover:not(:disabled) {
+            background-color: #1e7e34;
+        }
+
+        #result-area {
+            margin-top: 1.5rem;
+            padding: 15px;
+            background: var(--light-color);
+            border: 1px solid #dee2e6;
+            border-radius: var(--border-radius);
+            display: none;
+        }
+
+        #result-area h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 0.5rem;
+        }
+
+        #result-area h4 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .explanation {
+            font-size: 0.9em;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            background-color: #eef;
+            border-left: 4px solid var(--info-color);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+        }
+
+        .format-options {
+            margin-top: 1rem;
+        }
+
+        .format-options label {
+            display: block;
+            margin-bottom: 8px;
+            background-color: #e9ecef;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .format-options label:hover {
+            background-color: #dfe4e9;
+            border-color: #adb5bd;
+        }
+
+        .format-options input[type="radio"] {
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .format-label-text {
+            vertical-align: middle;
+        }
+
+        .format-details {
+            font-size: 0.8em;
+            color: var(--secondary-color);
+            margin-left: 5px;
+            display: inline;
+        }
+
+        .ffmpeg-note {
+            font-weight: bold;
+            color: var(--warning-color);
+            font-size: 0.9em;
+        }
+
+        #download-button-area {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e2e3e5;
+            border-radius: var(--border-radius);
+            color: var(--secondary-color);
+        }
+
+        .loading::before {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s ease-in-out infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #status-area {
+            margin-top: 1.5rem;
+        }
+
+        .status-message {
+            padding: 15px;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            word-break: break-word;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        /* Added word-break and white-space */
+        .status-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .status-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .status-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+
+        .status-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+
+        /* Added info status */
+        #ffmpeg-warning-area {
+            margin-bottom: 1rem;
+        }
+
+        /* Styles for streaming output */
+        #stream-output {
+            margin-top: 1.5rem;
+            padding: 15px;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: var(--border-radius);
+            max-height: 200px;
+            /* Limit height */
+            overflow-y: auto;
+            /* Add scrollbar */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8em;
+            white-space: pre-wrap;
+            /* Preserve whitespace and break lines */
+            word-break: break-all;
+            /* Break long words */
+            display: none;
+            /* Initially hidden */
+        }
+
+
+        @media (min-width: 576px) {
+            #getinfo-form {
+                flex-direction: row;
+                align-items: center;
+            }
+
+            input[type="text"] {
+                flex-grow: 1;
+            }
+
+            #getinfo-form input[type="submit"] {
+                flex-shrink: 0;
+                width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>YouTube Video Downloader</h1>
+        <form id="getinfo-form">
+            <input type="text" id="youtube_url" name="youtube_url" placeholder="Enter YouTube Video URL" required>
+            <input type="submit" id="getinfo-button" value="Get Video Info & Formats" class="button button-primary">
+        </form>
+        <div id="ffmpeg-warning-area" style="display: none;">
+            <p id="ffmpeg-warning-message" class="status-message status-warning"></p>
+        </div>
+        <div class="loading" id="loading-indicator-info">Fetching formats...</div>
+        <div class="loading" id="loading-indicator-download">Preparing download...</div>
+        <div id="result-area">
+            <h3 id="video-title"></h3>
+
+            <div class="explanation">
+                <strong>How Download Options Work:</strong> For best quality (720p+), YouTube often uses separate video
+                and audio streams. The "Recommended" options below automatically download and merge these using FFmpeg
+                (if available) to give you a single file with sound. The "Detailed" lists show the raw streams
+                available.
+            </div>
+
+            <div class="format-options">
+                <div id="recommended-formats-section">
+                    <h4>Recommended Quality (Automatic Merging)</h4>
+                </div>
+
+                <div id="video-formats-section">
+                    <h4>Detailed Video Streams</h4>
+                </div>
+                <div id="audio-formats-section">
+                    <h4>Detailed Audio Streams</h4>
+                </div>
+            </div>
+            <div id="download-button-area">
+                <button id="download-button" onclick="triggerServerDownload()" class="button button-success"
+                    disabled>Download Selected Format (to Server)</button>
+            </div>
+        </div>
+        <div id="status-area">
+            <p id="status-message-box" class="status-message"></p>
+            <pre id="stream-output"></pre>
+        </div>
+    </div>
+
+    <script>
+        let currentUrl = '';
+        let currentTitle = 'video';
+        let hasFFmpeg = true; // Assume true until proven otherwise by get_info
+
+        // --- Helper functions ---
+        function showStatus(message, type = 'info') {
+            const statusBox = document.getElementById('status-message-box');
+            statusBox.textContent = message;
+            statusBox.className = 'status-message'; // Reset classes
+            if (type === 'success') statusBox.classList.add('status-success');
+            else if (type === 'error') statusBox.classList.add('status-error');
+            else if (type === 'warning') statusBox.classList.add('status-warning');
+            else if (type === 'info') statusBox.classList.add('status-info'); // Use info class
+            statusBox.style.display = 'block';
+        }
+
+        function hideStatus() {
+            document.getElementById('status-message-box').style.display = 'none';
+        }
+
+        function clearStreamOutput() {
+            const streamOutput = document.getElementById('stream-output');
+            streamOutput.textContent = '';
+            streamOutput.style.display = 'none';
+        }
+
+        function showStreamOutput(message) {
+            const streamOutput = document.getElementById('stream-output');
+            streamOutput.style.display = 'block';
+            // Append message and scroll to bottom
+            streamOutput.textContent += message + '\n';
+            streamOutput.scrollTop = streamOutput.scrollHeight;
+        }
+
+
+        function showFFmpegWarning(message) {
+            const warningArea = document.getElementById('ffmpeg-warning-area');
+            const warningBox = document.getElementById('ffmpeg-warning-message');
+            if (message) {
+                warningBox.textContent = message;
+                warningArea.style.display = 'block';
+                warningBox.style.display = 'block';
+                hasFFmpeg = false; // Set flag if warning is shown
+            } else {
+                warningArea.style.display = 'none';
+                warningBox.style.display = 'none';
+                hasFFmpeg = true; // Reset flag if no warning
+            }
+        }
+
+        // --- Event Listener for Get Info Form ---
+        document.getElementById('getinfo-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            currentUrl = document.getElementById('youtube_url').value;
+            const resultArea = document.getElementById('result-area');
+            const recommendedDiv = document.getElementById('recommended-formats-section');
+            const videoFormatsDiv = document.getElementById('video-formats-section');
+            const audioFormatsDiv = document.getElementById('audio-formats-section');
+            const loadingInfo = document.getElementById('loading-indicator-info');
+            const getInfoButton = document.getElementById('getinfo-button');
+            const downloadButton = document.getElementById('download-button');
+
+            // Reset UI
+            resultArea.style.display = 'none';
+            // Clear previous format options but keep headings
+            recommendedDiv.innerHTML = '<h4>Recommended Quality (Automatic Merging)</h4>';
+            videoFormatsDiv.innerHTML = '<h4>Detailed Video Streams</h4>';
+            audioFormatsDiv.innerHTML = '<h4>Detailed Audio Streams</h4>';
+
+            hideStatus();
+            clearStreamOutput(); // Clear any previous download output
+            showFFmpegWarning(null); // Hide previous FFmpeg warning
+            loadingInfo.style.display = 'block';
+            getInfoButton.disabled = true;
+            downloadButton.disabled = true; // Disable download button until formats are loaded
+
+            try {
+                const response = await fetch('/get_info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ youtube_url: currentUrl })
+                });
+
+                const result = await response.json();
+
+                if (result.ffmpeg_warning) {
+                    showFFmpegWarning(result.ffmpeg_warning);
+                } else {
+                    hasFFmpeg = true; // Ensure flag is true if no warning from backend
+                }
+
+
+                if (response.ok) {
+                    currentTitle = result.title || 'video';
+                    document.getElementById('video-title').textContent = currentTitle;
+
+                    // --- Add Recommended Options ---
+                    // FFmpeg is needed for merging best video+audio
+                    const ffmpegNote = hasFFmpeg ? '' : ' <span class="format-details ffmpeg-note">(Requires FFmpeg - may fail)</span>';
+                    let recommendedOptionsHTML = '';
+
+                    // Best available quality (yt-dlp's best video + best audio)
+                    recommendedOptionsHTML += `<label><input type="radio" name="format_select" value="bestvideo*+bestaudio/best*" checked> <span class="format-label-text">Best Available Quality (Video+Audio)</span>${ffmpegNote}</label>`;
+                    // Best MP4 (video+audio)
+                    recommendedOptionsHTML += `<label><input type="radio" name="format_select" value="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]"> <span class="format-label-text">Best MP4 Quality (Video+Audio)</span>${ffmpegNote}</label>`;
+                    // Best WEBM (video+audio)
+                    recommendedOptionsHTML += `<label><input type="radio" name="format_select" value="bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]"> <span class="format-label-text">Best WEBM Quality (Video+Audio)</span>${ffmpegNote}</label>`;
+                    // Best single file (usually max 720p, doesn't require merging)
+                    recommendedOptionsHTML += `<label><input type="radio" name="format_select" value="best[protocol^=http]"> <span class="format-label-text">Best Single File (Max ~720p, No Merging)</span></label>`;
+
+                    recommendedDiv.innerHTML += recommendedOptionsHTML;
+
+
+                    // --- Add Detailed Individual Formats ---
+                    let videoOptionsHTML = '';
+                    let audioOptionsHTML = '';
+                    let hasVideoOptions = false;
+                    let hasAudioOptions = false;
+
+                    if (result.formats && result.formats.length > 0) {
+                        result.formats.forEach((f) => {
+                            // (Label generation logic remains the same as the previous corrected version)
+                            let labelText = '';
+                            let detailParts = [];
+                            let formatQualifier = '';
+
+                            const hasVideo = f.vcodec && f.vcodec !== 'none';
+                            const hasAudio = f.acodec && f.acodec !== 'none';
+                            const isVideoOnly = hasVideo && !hasAudio;
+                            const isAudioOnly = !hasVideo && hasAudio;
+                            const isVideoWithAudio = hasVideo && hasAudio;
+
+                            if (isVideoWithAudio) {
+                                // These are usually lower quality single files, might fit in Recommended or Detailed
+                                labelText = `${f.resolution || 'Video+Audio'} (${f.ext || '?'})`;
+                                // detailParts.push("Combined Stream"); // Indicate it's a single file
+                            } else if (isVideoOnly) {
+                                labelText = `${f.resolution || 'Video'} (${f.ext || '?'})`;
+                                formatQualifier = ' <span class="format-details ffmpeg-note">(Video Only - needs FFmpeg for audio)</span>';
+                                hasVideoOptions = true;
+                            } else if (isAudioOnly) {
+                                labelText = `Audio (${f.ext || '?'})`;
+                                formatQualifier = ' <span class="format-details">(Audio Only)</span>';
+                                hasAudioOptions = true;
+                            } else {
+                                // Skip formats that are neither video nor audio streams (e.g., metadata, chapters)
+                                return;
+                            }
+
+
+                            if (f.format_note) detailParts.push(f.format_note);
+                            if (f.fps) detailParts.push(`${f.fps}fps`);
+                            if (hasVideo) detailParts.push(`V: ${f.vcodec}`);
+                            if (hasAudio) detailParts.push(`A: ${f.acodec}`);
+
+                            if (f.vbr && hasVideo && !hasAudio) detailParts.push(`~${f.vbr.toFixed(0)}kbps (V)`);
+                            else if (f.abr && hasAudio && !hasVideo) detailParts.push(`~${f.abr.toFixed(0)}kbps (A)`);
+                            else if (f.tbr) detailParts.push(`~${f.tbr.toFixed(0)}kbps (Total)`);
+
+                            let size = f.filesize_approx ? `~(${(f.filesize_approx / 1024 / 1024).toFixed(1)} MB)` : '(size N/A)';
+                            if (f.filesize) size = `(${(f.filesize / 1024 / 1024).toFixed(1)} MB)`; // Use exact size if available
+                            detailParts.push(size);
+
+                            const finalLabelHTML = `<label><input type="radio" name="format_select" value="${f.format_id}"> <span class="format-label-text">${labelText}${formatQualifier}</span> <span class="format-details">${detailParts.join(', ')}</span></label>`;
+
+                            // Decide where to put the format option
+                            if (isVideoOnly || isVideoWithAudio) { // Include combined streams in video for simplicity
+                                videoOptionsHTML += finalLabelHTML;
+                            } else if (isAudioOnly) {
+                                audioOptionsHTML += finalLabelHTML;
+                            }
+                        }); // End forEach
+
+                        if (hasVideoOptions) { videoFormatsDiv.innerHTML += videoOptionsHTML; }
+                        else { document.getElementById('video-formats-section').style.display = 'none'; }
+
+                        if (hasAudioOptions) { audioFormatsDiv.innerHTML += audioOptionsHTML; }
+                        else { document.getElementById('audio-formats-section').style.display = 'none'; }
+
+                        // Show results area and enable download button if formats were found
+                        if (hasVideoOptions || hasAudioOptions) {
+                            resultArea.style.display = 'block';
+                            downloadButton.disabled = false;
+                        } else {
+                            showStatus("No suitable downloadable formats found for this video.", 'warning');
+                        }
+
+                    } else {
+                        showStatus("No downloadable formats found for this video.", 'warning');
+                    }
+                } else {
+                    // Handle errors from the backend response
+                    showStatus(`Error fetching info: ${result.error || 'Unknown server error'}`, 'error');
+                }
+            } catch (error) {
+                // Handle network or unexpected errors
+                showStatus(`Network or Server Error fetching info: ${error.message}`, 'error');
+                console.error("Fetch info error:", error);
+            } finally {
+                loadingInfo.style.display = 'none';
+                getInfoButton.disabled = false;
+            }
+        });
+
+        // --- Function to Trigger Server Download ---
+        // --- Function to Trigger Server Download ---
+        async function triggerServerDownload() {
+            const selectedFormatInput = document.querySelector('input[name="format_select"]:checked');
+            const loadingDownload = document.getElementById('loading-indicator-download');
+            const downloadButton = document.getElementById('download-button');
+            const getInfoButton = document.getElementById('getinfo-button');
+
+            hideStatus();
+            clearStreamOutput();
+
+            if (!selectedFormatInput) {
+                showStatus("Please select a format first!", 'warning');
+                return;
+            }
+            if (!currentUrl) {
+                showStatus("URL is missing. Please fetch info again.", 'error');
+                return;
+            }
+
+            const formatId = selectedFormatInput.value;
+
+            downloadButton.disabled = true;
+            getInfoButton.disabled = true;
+            loadingDownload.style.display = 'block';
+            showStatus("Starting download process...", 'info');
+
+
+            try {
+                const response = await fetch('/download_video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        youtube_url: currentUrl,
+                        format_id: formatId
+                    })
+                });
+
+                // --- CORRECTED: Check for non-OK status first ---
+                if (!response.ok) {
+                    // If status is not OK (e.g., 400 or 500), assume it's a JSON error response
+                    try {
+                        const errorResult = await response.json();
+                        showStatus(`Download failed: ${errorResult.error || 'Unknown server error'}`, 'error');
+                    } catch (jsonError) {
+                        // If even JSON parsing of the error response fails
+                        showStatus(`Download failed: Received non-JSON error response (Status: ${response.status}).`, 'error');
+                        console.error("Failed to parse error response as JSON:", jsonError);
+                    }
+                    clearStreamOutput(); // Ensure stream area is clear on error
+                    return; // Stop execution if there's an error
+                }
+
+                // --- If response is OK (200), proceed to read the stream ---
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (line) {
+                            try {
+                                const update = JSON.parse(line);
+                                if (update.status === 'progress' || update.status === 'info' || update.status === 'command') {
+                                    showStreamOutput(update.message);
+                                } else if (update.status === 'complete') {
+                                    showStatus(update.message, 'success');
+                                    showStreamOutput(update.message);
+                                } else if (update.status === 'error') {
+                                    showStatus(`Download Error: ${update.message}`, 'error');
+                                    showStreamOutput(`Error: ${update.message}`);
+                                }
+                            } catch (e) {
+                                console.error("Failed to parse stream line:", line, e);
+                            }
+                        }
+                    }
+                }
+                if (buffer.length > 0) {
+                    try {
+                        const update = JSON.parse(buffer);
+                        if (update.status === 'progress' || update.status === 'info' || update.status === 'command') {
+                            showStreamOutput(update.message);
+                        } else if (update.status === 'complete') {
+                            showStatus(update.message, 'success');
+                            showStreamOutput(update.message);
+                        } else if (update.status === 'error') {
+                            showStatus(`Download Error: ${update.message}`, 'error');
+                            showStreamOutput(`Error: ${update.message}`);
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse remaining buffer:", buffer, e);
+                    }
+                }
+
+
+            } catch (error) {
+                showStatus(`Network or Server Error initiating download: ${error.message}`, 'error');
+                console.error("Fetch download error:", error);
+                clearStreamOutput();
+            } finally {
+                loadingDownload.style.display = 'none';
+                downloadButton.disabled = false;
+                getInfoButton.disabled = false;
+            }
+        }
+
+        document.getElementById('result-area').addEventListener('change', function (event) {
+            if (event.target && event.target.name === 'format_select') {
+                document.getElementById('download-button').disabled = false;
+            }
+        });
+
+
+    </script>
+</body>
+
+</html>
