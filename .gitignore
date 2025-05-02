@@ -3,7 +3,6 @@
 __pycache__/
 
 # Editor directories and files
-.vscode/
 .idea/
 
 # Environment files
@@ -25,3 +24,7 @@ yt-dlp-cache/
 # Operating System files
 .DS_Store
 Thumbs.db
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
+branch_structure.json

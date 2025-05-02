@@ -225,14 +225,15 @@ def download_video():
     try:
         command = [
             'yt-dlp',
-            '-f', format_id,
-            '-o', output_template,
+            '--dump-json',
             '--no-warnings',
-            '--no-mtime',
-            '--progress',
-            '--newline',
-            '--no-check-certificates',
-             url
+            '--allow-unplayable-formats',
+            '--no-check-certificates', # Use with caution
+            # Add these potentially helpful options:
+            '--referer', 'https://www.youtube.com/', # Set a referer header
+            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36', # Mimic a common browser user agent
+            # '--extractor-args', 'youtube:player_client=web', # Sometimes helps, but might also cause issues
+            url
         ]
         if FFMPEG_PATH:
              command.extend(['--ffmpeg-location', FFMPEG_PATH])
