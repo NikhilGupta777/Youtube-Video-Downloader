@@ -1,0 +1,27 @@
+# Byte-code files
+*.pyc
+__pycache__/
+
+# Editor directories and files
+.vscode/
+.idea/
+
+# Environment files
+.env
+
+# Flask-specific
+instance/
+
+# Virtual environment
+venv/
+.venv/
+
+# Downloaded files (IMPORTANT!)
+downloads/
+
+# yt-dlp cache (if any)
+yt-dlp-cache/
+
+# Operating System files
+.DS_Store
+Thumbs.db
